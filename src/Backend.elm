@@ -45,10 +45,10 @@ update msg model =
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend _ clientId msg model =
     case msg of
-        CreateNewRecord time date players ->
+        CreateNewRecord duration date players ->
             let
                 records =
-                    { id = model.nextId, time = time, date = date, players = players } :: model.records
+                    { id = model.nextId, duration = duration, date = date, players = players } :: model.records
             in
             ( { model | records = records, nextId = model.nextId + 1 }, broadcast (UpdateRecords records) )
 

@@ -1,12 +1,13 @@
 module Record exposing (..)
 
+import Duration exposing (Duration)
 import Set exposing (Set)
 import Time exposing (Posix)
 
 
 type alias Record =
     { id : Int
-    , time : Float
+    , duration : Duration
     , date : Posix
     , players : Set String
     }

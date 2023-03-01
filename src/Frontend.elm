@@ -3,6 +3,7 @@ module Frontend exposing (..)
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
 import Date
+import Duration
 import Element exposing (Element)
 import Element.Background as Background
 import Element.Border as Border
@@ -85,21 +86,21 @@ update msg model =
             ( { model | timeString = timeString }, Cmd.none )
 
         ClickedAddRecord ->
-            case String.toFloat model.timeString of
-                Just time ->
-                    ( { model | timeString = "" }, Task.perform (GotNow time) Time.now )
+            case Duration.fromString model.timeString of
+                Just duration ->
+                    ( { model | timeString = "" }, Task.perform (GotNow duration) Time.now )
 
                 Nothing ->
                     ( model, Cmd.none )
 
-        GotNow time now ->
+        GotNow duration now ->
             ( case model.records of
                 Loaded records ->
-                    { model | records = Loaded <| { id = -1, time = time, date = now, players = model.selectedPlayers } :: records }
+                    { model | records = Loaded <| { id = -1, duration = duration, date = now, players = model.selectedPlayers } :: records }
 
                 Loading ->
                     model
-            , sendToBackend (CreateNewRecord time now model.selectedPlayers)
+            , sendToBackend (CreateNewRecord duration now model.selectedPlayers)
             )
 
         ClickedDelete id ->
@@ -155,11 +156,17 @@ view model =
                                     [ title "Players"
                                     , Element.row [ Element.spacing 16 ] <| List.map (checkbox model.selectedPlayers) model.players
                                     ]
-                                , Input.text [ Element.width (Element.px 100) ]
+                                , Input.text [ Element.width (Element.px 100), Font.alignRight ]
                                     { onChange = DidInputTime
                                     , text = model.timeString
                                     , placeholder = Nothing
-                                    , label = Input.labelAbove [] (title "Time")
+                                    , label =
+                                        Input.labelAbove []
+                                            (Element.column [ Element.spacing 4 ]
+                                                [ title "Time"
+                                                , Element.el [ Font.size 12, Font.color (Element.rgb255 150 150 150) ] <| Element.text "Please use the following format: m:ss."
+                                                ]
+                                            )
                                     }
                                 , Input.button
                                     [ Border.width 1
@@ -189,7 +196,7 @@ view model =
                                                   }
                                                 , { header = Element.none
                                                   , width = Element.shrink
-                                                  , view = \{ time } -> Element.el [ Font.alignRight ] <| Element.text <| String.fromFloat time
+                                                  , view = \{ duration } -> Element.el [ Font.alignRight ] <| Element.text <| Duration.toString duration
                                                   }
                                                 , { header = Element.none
                                                   , width = Element.shrink

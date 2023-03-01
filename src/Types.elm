@@ -2,6 +2,7 @@ module Types exposing (..)
 
 import Browser exposing (UrlRequest)
 import Browser.Navigation exposing (Key)
+import Duration exposing (Duration)
 import Record exposing (Record)
 import Set exposing (Set)
 import Time exposing (Posix)
@@ -35,12 +36,12 @@ type FrontendMsg
     | DidCheckPlayer String Bool
     | DidInputTime String
     | ClickedAddRecord
-    | GotNow Float Posix
+    | GotNow Duration Posix
     | ClickedDelete Int
 
 
 type ToBackend
-    = CreateNewRecord Float Posix (Set String)
+    = CreateNewRecord Duration Posix (Set String)
     | GetRecords
     | DeleteRecord Int
 
