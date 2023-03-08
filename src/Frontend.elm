@@ -10,6 +10,8 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Html
+import Html.Events
+import Json.Decode
 import Lamdera exposing (sendToBackend)
 import Set exposing (Set)
 import Task
@@ -156,17 +158,15 @@ view model =
                                     [ title "Players"
                                     , Element.row [ Element.spacing 16 ] <| List.map (checkbox model.selectedPlayers) model.players
                                     ]
-                                , Input.text [ Element.width (Element.px 100), Font.alignRight ]
+                                , Input.text
+                                    [ Element.width (Element.px 100)
+                                    , Font.alignRight
+                                    , onEnter ClickedAddRecord
+                                    ]
                                     { onChange = DidInputTime
                                     , text = model.timeString
-                                    , placeholder = Nothing
-                                    , label =
-                                        Input.labelAbove []
-                                            (Element.column [ Element.spacing 4 ]
-                                                [ title "Time"
-                                                , Element.el [ Font.size 12, Font.color (Element.rgb255 150 150 150) ] <| Element.text "Please use the following format: m:ss."
-                                                ]
-                                            )
+                                    , placeholder = Just <| Input.placeholder [] <| Element.text "m:ss"
+                                    , label = Input.labelAbove [] <| title "Time"
                                     }
                                 , Input.button
                                     [ Border.width 1
@@ -263,3 +263,20 @@ title text =
         , Font.family [ Font.typeface "Roboto Slab", Font.serif ]
         ]
         (Element.text text)
+
+
+onEnter : msg -> Element.Attribute msg
+onEnter msg =
+    Element.htmlAttribute
+        (Html.Events.on "keyup"
+            (Json.Decode.field "key" Json.Decode.string
+                |> Json.Decode.andThen
+                    (\key ->
+                        if key == "Enter" then
+                            Json.Decode.succeed msg
+
+                        else
+                            Json.Decode.fail "Not the enter key"
+                    )
+            )
+        )
