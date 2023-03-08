@@ -1,6 +1,7 @@
 module Frontend exposing (..)
 
 import Browser exposing (UrlRequest(..))
+import Browser.Dom
 import Browser.Navigation as Nav
 import Date
 import Duration
@@ -10,6 +11,7 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Html
+import Html.Attributes
 import Html.Events
 import Json.Decode
 import Lamdera exposing (sendToBackend)
@@ -90,7 +92,12 @@ update msg model =
         ClickedAddRecord ->
             case Duration.fromString model.timeString of
                 Just duration ->
-                    ( { model | timeString = "" }, Task.perform (GotNow duration) Time.now )
+                    ( { model | timeString = "" }
+                    , Cmd.batch
+                        [ Task.perform (GotNow duration) Time.now
+                        , Task.attempt DidFocus (Browser.Dom.focus "add-button")
+                        ]
+                    )
 
                 Nothing ->
                     ( model, Cmd.none )
@@ -114,6 +121,9 @@ update msg model =
                     model
             , sendToBackend (DeleteRecord id)
             )
+
+        DidFocus _ ->
+            ( model, Cmd.none )
 
 
 updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
@@ -175,6 +185,7 @@ view model =
                                     , Border.rounded 3
                                     , Font.center
                                     , Background.color (Element.rgb255 251 211 0)
+                                    , Element.htmlAttribute (Html.Attributes.id "add-button")
                                     ]
                                     { onPress = Just ClickedAddRecord
                                     , label = Element.text "Add"

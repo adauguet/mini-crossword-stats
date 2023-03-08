@@ -1,6 +1,7 @@
 module Types exposing (..)
 
 import Browser exposing (UrlRequest)
+import Browser.Dom
 import Browser.Navigation exposing (Key)
 import Duration exposing (Duration)
 import Record exposing (Record)
@@ -38,6 +39,7 @@ type FrontendMsg
     | ClickedAddRecord
     | GotNow Duration Posix
     | ClickedDelete Int
+    | DidFocus (Result Browser.Dom.Error ())
 
 
 type ToBackend
