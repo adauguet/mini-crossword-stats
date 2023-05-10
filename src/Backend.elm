@@ -1,6 +1,11 @@
 module Backend exposing (..)
 
+import Duration exposing (Duration(..))
+import Env
 import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
+import Set
+import Time exposing (Month(..))
+import Time.Extra exposing (Interval(..), Parts)
 import Types exposing (..)
 
 
@@ -28,7 +33,25 @@ app =
 
 init : ( Model, Cmd BackendMsg )
 init =
-    ( { records = []
+    ( { records =
+            case Env.mode of
+                Env.Development ->
+                    List.range 0 99
+                        |> List.map
+                            (\id ->
+                                { id = id
+                                , duration = Duration ((id * 5 |> modBy 180) + 120)
+                                , date =
+                                    Parts 2023 Jan 1 12 0 0 0
+                                        |> Time.Extra.partsToPosix Time.utc
+                                        |> Time.Extra.add Day id Time.utc
+                                , players =
+                                    Set.fromList [ "Antoine", "Eman", "Faraaz", "Mfon", "Waj" ]
+                                }
+                            )
+
+                Env.Production ->
+                    []
       , nextId = 0
       }
     , Cmd.none

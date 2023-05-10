@@ -1,8 +1,8 @@
-module Record exposing (..)
+module Record exposing (Record)
 
-import Duration exposing (Duration)
+import Duration exposing (Duration(..))
 import Set exposing (Set)
-import Time exposing (Posix)
+import Time exposing (Month(..), Posix)
 
 
 type alias Record =

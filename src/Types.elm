@@ -16,12 +16,18 @@ type alias FrontendModel =
     , selectedPlayers : Set String
     , timeString : String
     , records : Records
+    , results : Results
     }
 
 
 type Records
     = Loading
     | Loaded (List Record)
+
+
+type Results
+    = Chart
+    | List
 
 
 type alias BackendModel =
@@ -33,13 +39,14 @@ type alias BackendModel =
 type FrontendMsg
     = UrlClicked UrlRequest
     | UrlChanged Url
-    | NoOpFrontendMsg
     | DidCheckPlayer String Bool
     | DidInputTime String
     | ClickedAddRecord
     | GotNow Duration Posix
     | ClickedDelete Int
     | DidFocus (Result Browser.Dom.Error ())
+    | SelectChart
+    | SelectList
 
 
 type ToBackend

@@ -3,6 +3,8 @@ module Frontend exposing (..)
 import Browser exposing (UrlRequest(..))
 import Browser.Dom
 import Browser.Navigation as Nav
+import Chart as C
+import Chart.Attributes as CA
 import Date
 import Duration
 import Element exposing (Element)
@@ -15,6 +17,7 @@ import Html.Attributes
 import Html.Events
 import Json.Decode
 import Lamdera exposing (sendToBackend)
+import Record exposing (Record)
 import Set exposing (Set)
 import Task
 import Time
@@ -58,6 +61,7 @@ init _ key =
       , selectedPlayers = Set.fromList players
       , timeString = ""
       , records = Loading
+      , results = Chart
       }
     , sendToBackend GetRecords
     )
@@ -75,9 +79,6 @@ update msg model =
                     ( model, Nav.load url )
 
         UrlChanged _ ->
-            ( model, Cmd.none )
-
-        NoOpFrontendMsg ->
             ( model, Cmd.none )
 
         DidCheckPlayer player True ->
@@ -124,6 +125,12 @@ update msg model =
 
         DidFocus _ ->
             ( model, Cmd.none )
+
+        SelectChart ->
+            ( { model | results = Chart }, Cmd.none )
+
+        SelectList ->
+            ( { model | results = List }, Cmd.none )
 
 
 updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
@@ -191,39 +198,124 @@ view model =
                                     , label = Element.text "Add"
                                     }
                                 ]
+                            , Element.row
+                                [ Border.width 1
+                                , Border.rounded 3
+                                , Element.clip
+                                , Element.height (Element.px 22)
+                                ]
+                                [ Input.button
+                                    [ Element.paddingXY 8 4
+                                    , if model.results == Chart then
+                                        Background.color (Element.rgb255 251 211 0)
+
+                                      else
+                                        Background.color (Element.rgb255 255 255 255)
+                                    ]
+                                    { onPress = Just SelectChart
+                                    , label = Element.text "Chart"
+                                    }
+                                , Element.el
+                                    [ Background.color (Element.rgb255 0 0 0)
+                                    , Element.width (Element.px 1)
+                                    , Element.height Element.fill
+                                    ]
+                                    Element.none
+                                , Input.button
+                                    [ Element.paddingXY 8 4
+                                    , if model.results == List then
+                                        Background.color (Element.rgb255 251 211 0)
+
+                                      else
+                                        Background.color (Element.rgb255 255 255 255)
+                                    ]
+                                    { onPress = Just SelectList
+                                    , label = Element.text "List"
+                                    }
+                                ]
                             , case records of
                                 [] ->
                                     Element.none
 
                                 results ->
-                                    Element.column [ Element.spacing 8 ]
-                                        [ title "Results"
-                                        , Element.table [ Element.height Element.fill, Element.spacingXY 16 8 ]
-                                            { data = results
-                                            , columns =
-                                                [ { header = Element.none
-                                                  , width = Element.shrink
-                                                  , view = \{ date } -> Date.format "EEE, d MMM" (Date.fromPosix Time.utc date) |> Element.text
-                                                  }
-                                                , { header = Element.none
-                                                  , width = Element.shrink
-                                                  , view = \{ duration } -> Element.el [ Font.alignRight ] <| Element.text <| Duration.toString duration
-                                                  }
-                                                , { header = Element.none
-                                                  , width = Element.shrink
-                                                  , view = \{ players } -> Element.text <| String.join ", " <| Set.toList players
-                                                  }
-                                                , { header = Element.none
-                                                  , width = Element.shrink
-                                                  , view = \{ id } -> deleteButton id
-                                                  }
+                                    case model.results of
+                                        Chart ->
+                                            Element.column []
+                                                [ title "Chart"
+                                                , chart results
                                                 ]
-                                            }
-                                        ]
+
+                                        List ->
+                                            Element.column [ Element.spacing 8 ]
+                                                [ title "Results"
+                                                , table results
+                                                ]
                             ]
                         ]
         ]
     }
+
+
+chart : List Record -> Element msg
+chart results =
+    Element.el
+        [ Element.height (Element.px 300)
+        , Element.width (Element.px 500)
+        , Element.paddingXY 30 30
+        ]
+    <|
+        Element.html <|
+            C.chart
+                [ CA.height 300
+                , CA.width 500
+                ]
+                [ C.xAxis []
+                , C.xTicks [ CA.times Time.utc ]
+                , C.xLabels [ CA.times Time.utc ]
+                , C.yAxis []
+                , C.yTicks []
+                , C.yLabels
+                    [ CA.withGrid
+                    , CA.format formatYLabel
+                    , CA.amount 8
+                    ]
+                , C.bars [ CA.x1 (.date >> Time.posixToMillis >> toFloat) ]
+                    [ C.bar (.duration >> Duration.toSeconds >> toFloat) []
+                    ]
+                    results
+                ]
+
+
+table : List Record -> Element FrontendMsg
+table results =
+    Element.table
+        [ Element.height Element.fill
+        , Element.spacingXY 16 8
+        , Element.clipY
+        , Element.height (Element.px 215)
+        , Element.scrollbarY
+        , Element.paddingEach { top = 0, left = 0, right = 20, bottom = 0 }
+        ]
+        { data = results
+        , columns =
+            [ { header = Element.none
+              , width = Element.shrink
+              , view = \{ date } -> Date.format "EEE, d MMM" (Date.fromPosix Time.utc date) |> Element.text
+              }
+            , { header = Element.none
+              , width = Element.shrink
+              , view = \{ duration } -> Element.el [ Font.alignRight ] <| Element.text <| Duration.toString duration
+              }
+            , { header = Element.none
+              , width = Element.shrink
+              , view = \{ players } -> Element.text <| String.join ", " <| Set.toList players
+              }
+            , { header = Element.none
+              , width = Element.shrink
+              , view = \{ id } -> deleteButton id
+              }
+            ]
+        }
 
 
 minimum : comparable -> List comparable -> comparable
@@ -291,3 +383,12 @@ onEnter msg =
                     )
             )
         )
+
+
+formatYLabel : Float -> String
+formatYLabel f =
+    let
+        s =
+            floor f
+    in
+    (String.fromInt <| s // 60) ++ ":" ++ (String.padLeft 2 '0' <| String.fromInt <| modBy 60 s)
