@@ -198,58 +198,63 @@ view model =
                                     , label = Element.text "Add"
                                     }
                                 ]
-                            , Element.row
-                                [ Border.width 1
-                                , Border.rounded 3
-                                , Element.clip
-                                , Element.height (Element.px 22)
-                                ]
-                                [ Input.button
-                                    [ Element.paddingXY 8 4
-                                    , if model.results == Chart then
-                                        Background.color (Element.rgb255 251 211 0)
-
-                                      else
-                                        Background.color (Element.rgb255 255 255 255)
-                                    ]
-                                    { onPress = Just SelectChart
-                                    , label = Element.text "Chart"
-                                    }
-                                , Element.el
-                                    [ Background.color (Element.rgb255 0 0 0)
-                                    , Element.width (Element.px 1)
-                                    , Element.height Element.fill
-                                    ]
-                                    Element.none
-                                , Input.button
-                                    [ Element.paddingXY 8 4
-                                    , if model.results == List then
-                                        Background.color (Element.rgb255 251 211 0)
-
-                                      else
-                                        Background.color (Element.rgb255 255 255 255)
-                                    ]
-                                    { onPress = Just SelectList
-                                    , label = Element.text "List"
-                                    }
-                                ]
                             , case records of
                                 [] ->
                                     Element.none
 
                                 results ->
-                                    case model.results of
-                                        Chart ->
-                                            Element.column []
-                                                [ title "Chart"
-                                                , chart results
+                                    Element.column [ Element.spacing 20 ]
+                                        [ Element.row [ Element.width Element.fill ]
+                                            [ title "Results"
+                                            , Element.row
+                                                [ Border.width 1
+                                                , Border.rounded 3
+                                                , Element.clip
+                                                , Element.height (Element.px 22)
+                                                , Element.alignRight
                                                 ]
+                                                [ Input.button
+                                                    [ Element.paddingXY 8 4
+                                                    , if model.results == Chart then
+                                                        Background.color (Element.rgb255 251 211 0)
 
-                                        List ->
-                                            Element.column [ Element.spacing 8 ]
-                                                [ title "Results"
-                                                , table results
+                                                      else
+                                                        Background.color (Element.rgb255 255 255 255)
+                                                    ]
+                                                    { onPress = Just SelectChart
+                                                    , label = Element.text "Chart"
+                                                    }
+                                                , Element.el
+                                                    [ Background.color (Element.rgb255 0 0 0)
+                                                    , Element.width (Element.px 1)
+                                                    , Element.height Element.fill
+                                                    ]
+                                                    Element.none
+                                                , Input.button
+                                                    [ Element.paddingXY 8 4
+                                                    , if model.results == List then
+                                                        Background.color (Element.rgb255 251 211 0)
+
+                                                      else
+                                                        Background.color (Element.rgb255 255 255 255)
+                                                    ]
+                                                    { onPress = Just SelectList
+                                                    , label = Element.text "List"
+                                                    }
                                                 ]
+                                            ]
+                                        , Element.el
+                                            [ Element.height (Element.px 300)
+                                            , Element.width (Element.px 500)
+                                            ]
+                                          <|
+                                            case model.results of
+                                                Chart ->
+                                                    chart results
+
+                                                List ->
+                                                    table results
+                                        ]
                             ]
                         ]
         ]
@@ -258,43 +263,35 @@ view model =
 
 chart : List Record -> Element msg
 chart results =
-    Element.el
-        [ Element.height (Element.px 300)
-        , Element.width (Element.px 500)
-        , Element.paddingXY 30 30
-        ]
-    <|
-        Element.html <|
-            C.chart
-                [ CA.height 300
-                , CA.width 500
+    Element.html <|
+        C.chart
+            [ CA.height 300
+            , CA.width 500
+            ]
+            [ C.xAxis []
+            , C.xTicks [ CA.times Time.utc ]
+            , C.xLabels [ CA.times Time.utc ]
+            , C.yAxis []
+            , C.yTicks []
+            , C.yLabels
+                [ CA.withGrid
+                , CA.format formatYLabel
+                , CA.amount 8
                 ]
-                [ C.xAxis []
-                , C.xTicks [ CA.times Time.utc ]
-                , C.xLabels [ CA.times Time.utc ]
-                , C.yAxis []
-                , C.yTicks []
-                , C.yLabels
-                    [ CA.withGrid
-                    , CA.format formatYLabel
-                    , CA.amount 8
-                    ]
-                , C.bars [ CA.x1 (.date >> Time.posixToMillis >> toFloat) ]
-                    [ C.bar (.duration >> Duration.toSeconds >> toFloat) []
-                    ]
-                    results
+            , C.bars [ CA.x1 (.date >> Time.posixToMillis >> toFloat) ]
+                [ C.bar (.duration >> Duration.toSeconds >> toFloat) [ CA.color "#4688F0" ]
                 ]
+                results
+            ]
 
 
 table : List Record -> Element FrontendMsg
 table results =
     Element.table
-        [ Element.height Element.fill
-        , Element.spacingXY 16 8
+        [ Element.spacingXY 20 10
         , Element.clipY
-        , Element.height (Element.px 215)
         , Element.scrollbarY
-        , Element.paddingEach { top = 0, left = 0, right = 20, bottom = 0 }
+        , Element.height (Element.px 300)
         ]
         { data = results
         , columns =
