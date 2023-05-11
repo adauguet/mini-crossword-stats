@@ -62,7 +62,7 @@ init _ key =
       , selectedPlayers = Set.fromList players
       , timeString = ""
       , records = Loading
-      , results = Chart
+      , results = List
       }
     , sendToBackend GetRecords
     )
@@ -216,14 +216,14 @@ view model =
                                                 ]
                                                 [ Input.button
                                                     [ Element.paddingXY 8 4
-                                                    , if model.results == Chart then
+                                                    , if model.results == List then
                                                         Background.color (Element.rgb255 251 211 0)
 
                                                       else
                                                         Background.color (Element.rgb255 255 255 255)
                                                     ]
-                                                    { onPress = Just SelectChart
-                                                    , label = Element.text "Chart"
+                                                    { onPress = Just SelectList
+                                                    , label = Element.text "List"
                                                     }
                                                 , Element.el
                                                     [ Background.color (Element.rgb255 0 0 0)
@@ -233,14 +233,14 @@ view model =
                                                     Element.none
                                                 , Input.button
                                                     [ Element.paddingXY 8 4
-                                                    , if model.results == List then
+                                                    , if model.results == Chart then
                                                         Background.color (Element.rgb255 251 211 0)
 
                                                       else
                                                         Background.color (Element.rgb255 255 255 255)
                                                     ]
-                                                    { onPress = Just SelectList
-                                                    , label = Element.text "List"
+                                                    { onPress = Just SelectChart
+                                                    , label = Element.text "Chart"
                                                     }
                                                 ]
                                             ]
