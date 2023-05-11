@@ -221,6 +221,7 @@ view model =
 
                                                       else
                                                         Background.color (Element.rgb255 255 255 255)
+                                                    , Font.size 12
                                                     ]
                                                     { onPress = Just SelectList
                                                     , label = Element.text "List"
@@ -238,6 +239,7 @@ view model =
 
                                                       else
                                                         Background.color (Element.rgb255 255 255 255)
+                                                    , Font.size 12
                                                     ]
                                                     { onPress = Just SelectChart
                                                     , label = Element.text "Chart"
