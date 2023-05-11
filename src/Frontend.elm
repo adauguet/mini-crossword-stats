@@ -293,7 +293,7 @@ chart results =
                 , CA.format formatYLabel
                 , CA.amount 8
                 ]
-            , C.bars [ CA.x1 recordX ]
+            , C.bars [ CA.x1 recordX, CA.x2 (recordX >> (+) 90000000) ]
                 [ C.bar recordY [ CA.color "#4688F0" ]
                 ]
                 results
