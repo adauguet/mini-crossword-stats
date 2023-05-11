@@ -21,6 +21,7 @@ import Record exposing (Record)
 import Set exposing (Set)
 import Task
 import Time
+import Time.Extra
 import Types exposing (..)
 import Url
 
@@ -263,6 +264,20 @@ view model =
 
 chart : List Record -> Element msg
 chart results =
+    let
+        recordX : Record -> Float
+        recordX record =
+            record.date
+                |> Time.Extra.floor Time.Extra.Day Time.utc
+                |> Time.posixToMillis
+                |> toFloat
+
+        recordY : Record -> Float
+        recordY record =
+            record.duration
+                |> Duration.toSeconds
+                |> toFloat
+    in
     Element.html <|
         C.chart
             [ CA.height 300
@@ -278,8 +293,8 @@ chart results =
                 , CA.format formatYLabel
                 , CA.amount 8
                 ]
-            , C.bars [ CA.x1 (.date >> Time.posixToMillis >> toFloat) ]
-                [ C.bar (.duration >> Duration.toSeconds >> toFloat) [ CA.color "#4688F0" ]
+            , C.bars [ CA.x1 recordX ]
+                [ C.bar recordY [ CA.color "#4688F0" ]
                 ]
                 results
             ]
