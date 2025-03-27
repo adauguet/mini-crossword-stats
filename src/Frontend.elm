@@ -55,7 +55,7 @@ init : Url.Url -> Nav.Key -> ( Model, Cmd FrontendMsg )
 init _ key =
     let
         players =
-            [ "Antoine", "Eman", "Faraaz", "Ilias", "Kristen", "Mariano", "Mfon", "Waj" ]
+            [ "Brian", "Collin", "Eman", "Mariano", "Mfon", "Waj" ]
     in
     ( { key = key
       , players = players
